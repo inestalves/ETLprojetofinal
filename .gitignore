@@ -1,0 +1,6 @@
+/data/raw
+.env
+.venv/
+.idea/
+__pycache__/
+s
