@@ -1,6 +1,4 @@
-/data/raw
+data/
 .env
-.venv/
-.idea/
 __pycache__/
-s
+*.pyc
