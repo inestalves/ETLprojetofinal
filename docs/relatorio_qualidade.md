@@ -15,6 +15,9 @@ O *Dataset* do Spotify foi utilizado como tabela principal (Base) para garantir 
 * **Wikipedia:** O cruzamento foi efetuado pela chave `artist_name`.
 
 ## 3. Análise de Valores Nulos e Limitações
-A análise à tabela final (`dataset_integrado.csv`) revelou a seguinte distribuição de cobertura:
-* **Last.fm e Wikipedia:** Apresentaram uma excelente taxa de correspondência (aprox. 905 e 669 registos preenchidos, respetivamente).
-* **MusicBrainz:** Apresentou uma elevada taxa de valores nulos estruturais. Os valores originalmente marcados como `"Unknown"` no *scraping* foram convertidos para tipos nulos nativos do Pandas (`pd.NA`). Esta limitação deve-se à elevada sensibilidade da API do MusicBrainz a pequenas variações nos títulos de faixas que não correspondam exatamente ao lançamento oficial em álbum. Decidimos preservar estes nulos, pois refletem a realidade arquitetural das fontes de dados musicais.
+A análise à tabela final (`dataset_integrado.csv`) revelou uma elevada presença de valores nulos (cerca de 66.000 registos sem dados enriquecidos). Após auditoria à arquitetura, concluímos que existem duas naturezas distintas para estes nulos:
+
+1. **Nulos por Amostragem (Maioria):** O *Dataset* base do Spotify contém 67.503 faixas. No entanto, por restrições de tempo de processamento e limites de *rate-limiting* das APIs na Semana 1, os scripts de extração (Last.fm, MusicBrainz e Wikipedia) foram executados apenas para uma **amostra reduzida** (entre 100 a 1000 registos). Devido à natureza do `LEFT JOIN` (que preserva a tabela base na íntegra), as dezenas de milhares de faixas que não foram alvo de extração resultaram naturalmente em nulos.
+2. **Nulos Estruturais (API Mismatch):** Nas faixas que foram efetivamente alvo de pesquisa, o Last.fm e a Wikipedia apresentaram uma excelente taxa de correspondência. Em contrapartida, o MusicBrainz apresentou valores nulos estruturais (originalmente gravados como `"Unknown"`). Esta limitação deve-se à elevada sensibilidade da API do MusicBrainz a pequenas variações nos títulos de faixas que não correspondam exatamente ao lançamento oficial em álbum.
+
+**Decisão:** Decidimos preservar os nulos gerados pelo `LEFT JOIN`, pois mantêm a integridade da amostra original do Spotify, permitindo-nos escalar a extração no futuro sem alterar o código da camada de transformação.
