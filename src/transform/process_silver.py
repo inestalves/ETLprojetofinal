@@ -10,13 +10,12 @@ def clean_track_name(name):
     if pd.isna(name):
         return name
     name = str(name)
-    name = re.sub(r'\(.*?\)', '', name)  
-    name = re.sub(r'\[.*?\]', '', name)  
-    name = name.split('-')[0]           
-    return name.strip().lower()          #
+    name = re.sub(r'\(.*?\)', '', name)  # Remove (feat. Ciara)
+    name = re.sub(r'\[.*?\]', '', name)  # Remove [Radio Edit]
+    name = name.split('-')[0]            # Remove tudo após um hífen
+    return name.strip().lower()          # Minúsculas e remove espaços
 
 def clean_artist_name(name):
-    """Passa o nome do artista para minúsculas para evitar falhas no Join por causa de maiúsculas/minúsculas."""
     if pd.isna(name): return name
     return str(name).strip().lower()
 
@@ -32,36 +31,40 @@ def main():
         bios_dict = json.load(f)
     df_wiki = pd.DataFrame(list(bios_dict.items()), columns=['artist_name', 'biography'])
 
-    logging.info("A normalizar chaves de cruzamento (nomes de artistas e faixas)...")
-    for df in [df_spotify, df_lastfm, df_mb]:
-        df['artist_join'] = df['artist_name'].apply(clean_artist_name)
+    logging.info("A limpar os nomes diretamente nas colunas finais...")
+    # Em vez de criar colunas novas, substituímos a própria coluna artist_name e track_name
+    for df in [df_spotify, df_lastfm, df_mb, df_wiki]:
+        if 'artist_name' in df.columns:
+            df['artist_name'] = df['artist_name'].apply(clean_artist_name)
         if 'track_name' in df.columns:
-            df['track_join'] = df['track_name'].apply(clean_track_name)
-            
-    df_wiki['artist_join'] = df_wiki['artist_name'].apply(clean_artist_name)
+            df['track_name'] = df['track_name'].apply(clean_track_name)
+
+    logging.info("A remover duplicados absolutos das fontes...")
+    # O Spotify traz a mesma música várias vezes porque vem de playlists diferentes. Vamos manter só 1 de cada!
+    df_spotify = df_spotify.drop_duplicates(subset=['artist_name', 'track_name'])
+    df_lastfm = df_lastfm.drop_duplicates(subset=['artist_name'])
+    df_mb = df_mb.drop_duplicates(subset=['artist_name', 'track_name'])
+    df_wiki = df_wiki.drop_duplicates(subset=['artist_name'])
 
     logging.info("A realizar a integração dos dados (Joins)...")
-    df_master = pd.merge(df_spotify, df_lastfm, on=['artist_join'], how='left', suffixes=('', '_lastfm'))    
+    # Como as colunas originais já estão limpas, fazemos o JOIN diretamente por elas
+    df_master = pd.merge(df_spotify, df_lastfm, on=['artist_name'], how='left')    
     
-    df_master = pd.merge(df_master, df_mb, on=['artist_join', 'track_join'], how='left', suffixes=('', '_mb'))
+    # Adicionamos um sufixo apenas para não dar conflito na coluna mbi_id (que vem do lastfm e do mb)
+    df_master = pd.merge(df_master, df_mb, on=['artist_name', 'track_name'], how='left', suffixes=('', '_mb'))
     
-    df_master = pd.merge(df_master, df_wiki, on=['artist_join'], how='left', suffixes=('', '_wiki'))
+    df_master = pd.merge(df_master, df_wiki, on=['artist_name'], how='left')
 
-    logging.info("A limpar e normalizar colunas finais...")
-    colunas_para_apagar = ['artist_join', 'track_join', 'artist_name_lastfm', 'track_name_lastfm', 
-                           'artist_name_mb', 'track_name_mb', 'artist_name_wiki']
-    df_master.drop(columns=[col for col in colunas_para_apagar if col in df_master.columns], inplace=True)
-
+    logging.info("A normalizar os tipos de dados e nulos...")
     df_master.replace("Unknown", pd.NA, inplace=True)
 
     df_master['playcount'] = pd.to_numeric(df_master['playcount'], errors='coerce')
     df_master['listeners'] = pd.to_numeric(df_master['listeners'], errors='coerce')
-
     df_master['release_date'] = pd.to_datetime(df_master['release_date'], errors='coerce')
 
     output_path = 'data/silver/dataset_integrado.csv'
     df_master.to_csv(output_path, index=False)
-    logging.info(f"Transformação concluída! Dataset guardado em: {output_path}")
+    logging.info(f"Transformação concluída! Dataset limpo e sem duplicados guardado em: {output_path}")
     
     print("\n--- Resumo de Qualidade de Dados ---")
     print(df_master.info())
