@@ -68,3 +68,56 @@ python src/extractors/musicbrainz_extract.py
 
 * Inventário de Fontes: Detalhes sobre as APIs e licenças.
 * Registo de IA : Documentação da metodologia Spec-Driven e uso de IA.
+
+## Estratégia de Modelação (Camada Gold)
+
+Para a construção do Data Warehouse analítico, optou-se por um **Modelo em Estrela (Star Schema)**, desenhado para otimizar a agregação de dados e a performance das *queries* no futuro Dashboard.
+
+O modelo é composto por:
+* **Tabela de Factos (`Fact_Trends`):** Centraliza as métricas quantitativas de popularidade (`playcount`, `listeners`) obtidas do Last.fm. Granularidade: Uma linha por cada par Artista-Faixa.
+* **Dimensões:**
+  * **`Dim_Artist`**: Contém os atributos descritivos do artista (nome, biografia da Wikipedia e *tags* de género musical).
+  * **`Dim_Track`**: Contém os detalhes da música (nome da faixa e editora/label).
+  * **`Dim_Geography`**: Isola o país de lançamento (`release_country`) para permitir o filtro geográfico das tendências.
+  * **`Dim_Date`**: Derivada da data de lançamento (`release_date`), permitindo agregar tendências por ano ou década.
+
+  erDiagram
+    Fact_Trends {
+        int fact_id PK
+        string artist_uri FK
+        string track_uri FK
+        int geo_id FK
+        int date_id FK
+        float playcount
+        float listeners
+    }
+
+    Dim_Artist {
+        string artist_uri PK
+        string artist_name
+        string mbi_id
+        string tags_genres_era
+        text biography
+    }
+
+    Dim_Track {
+        string track_uri PK
+        string track_name
+        string label
+    }
+
+    Dim_Geography {
+        int geo_id PK
+        string release_country
+    }
+
+    Dim_Date {
+        int date_id PK
+        date release_date
+        int release_year
+    }
+
+    Fact_Trends }|--|| Dim_Artist : "tem"
+    Fact_Trends }|--|| Dim_Track : "refere"
+    Fact_Trends }|--|| Dim_Geography : "ocorre em"
+    Fact_Trends }|--|| Dim_Date : "lançado em"
