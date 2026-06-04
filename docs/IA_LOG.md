@@ -69,33 +69,7 @@ A equipa adotou uma abordagem *Spec-Driven Development* para a construção do m
 
 ## Semana 3: Carregamento (Load) e Modelação
 
-### Intenção e Requisitos
-
-* **Objetivo:** Modelar os dados transformados num Star Schema SQLite e implementar scripts de criação de schema, carga e validação pós-load.
-* **Entradas:** `data/silver/dataset_integrado.csv`
-* **Saídas:** `data/gold/` (3 CSVs) + `data/music_analytics.db` (SQLite com 3 tabelas)
-* **Critérios de aceitação:** 0 falhas de integridade referencial, contagens consistentes entre Gold CSV e SQLite, schema documentado com diagrama ER.
-
-### Desenho aprovado antes da implementação
-
-Foi adotado um **Star Schema** com:
-- `dim_artists` — chave surrogate `artist_id`, atributos de artista e métricas Last.fm
-- `dim_tracks` — chave surrogate `track_id`, FK para `dim_artists`, metadados Spotify/MusicBrainz
-- `fact_popularity` — FK para ambas as dimensões, métricas de popularidade
-
-Motor escolhido: **SQLite** (sem servidor, ficheiro único, local).
-
-### Iterações e Validação Humana
-
-**Iteração 1 — Gold layer**
-* **Prompt/Intenção:** Gerar script `process_gold.py` que constrói dimensões e tabela de factos a partir do Silver, usando surrogate keys.
-* **Resultado da IA:** Script gerado com `build_dim_artists`, `build_dim_tracks`, `build_fact_popularity`.
-* **Validação Humana:** Execução confirmou 24 723 artistas, 101 813 faixas e 101 813 factos. Resultado aceite sem alterações.
-
-**Iteração 2 — Schema e carga**
-* **Prompt/Intenção:** Gerar `create_schema.py` com DDL SQLite incluindo chaves primárias, FK e índices, e `load_data.py` com verificações pós-load automáticas.
-* **Resultado da IA:** Scripts gerados com PRAGMA foreign_keys, índices sobre `artist_id`/`track_id`, e 7 queries de validação integradas.
-* **Validação Humana:** Todas as 7 verificações retornaram OK (0 violações de integridade). Aceite sem alterações.
-
-**Decisão sobre `artist_bios_sample.json`:**
-Durante a execução, o `process_silver.py` falhou com `FileNotFoundError` porque o ficheiro estava em `amostras/` mas o script esperava em `data/raw/`. Decisão da equipa: copiar o ficheiro para `data/raw/` e documentar a inconsistência para corrigir na Semana 4.
+* **Objetivo:** Modelar os dados transformados num Star Schema SQLite, construir a camada Gold e implementar scripts de criação de schema, carga e validação pós-load.
+* **Uso da IA:** O LLM foi utilizado como assistente de programação para apoiar a estruturação do modelo dimensional e a geração dos scripts de carga.
+* **Prompt Principal:** "Preciso de modelar os dados da camada Silver num Star Schema SQLite. Quais as tabelas necessárias, como definir as chaves e que índices criar para otimizar as queries do dashboard?"
+* **Ação Humana / Validação:** A equipa definiu previamente a estratégia de modelação (Star Schema com dim_artists, dim_tracks e fact_popularity) e validou a execução do pipeline completo. Durante os testes no DB Browser for SQLite, foi detetado que os índices não estavam a ser criados corretamente — o método to_sql com if_exists="replace" apagava as tabelas e os índices a cada carga. O script foi corrigido para recriar os índices após cada carga. Todas as 7 verificações de integridade referencial retornaram OK (0 violações), confirmando a consistência do modelo.
