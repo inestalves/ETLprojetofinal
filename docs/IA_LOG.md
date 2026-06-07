@@ -65,9 +65,8 @@ A equipa adotou uma abordagem *Spec-Driven Development* para a construção do m
 * **Prompt Principal:** "Preciso de um script em Pandas que faça o Left Join de 4 ficheiros (Spotify, Last.fm, MusicBrainz e Wikipedia). As faixas do Spotify têm metadados como '(feat. X)' que impedem o match com o MusicBrainz. Como posso limpar isso antes do Join?"
 * **Ação Humana / Validação:** O código fornecido pela IA tentou inicialmente cruzar o dataset do Last.fm usando a chave `track_name`. No entanto, ao analisar o erro de execução `KeyError`, percebemos que a extração da Semana 1 focava-se no nível do *artista*. O script foi corrigido manualmente pela equipa para realizar o *join* apenas por `artist_name`, o que resolveu o problema estrutural com sucesso. A IA foi também consultada para diagnosticar erros de leitura do Pandas (ex: `EmptyDataError`).
 
----
 
-## Semana 3: Carregamento (Load) e Modelação
+## Semana 3: Carregamento e Modelação
 
 * **Objetivo:** Modelar os dados transformados num Star Schema SQLite, construir a camada Gold e implementar scripts de criação de schema, carga e validação pós-load.
 * **Uso da IA:** O LLM foi utilizado como assistente de programação para apoiar a estruturação do modelo dimensional e a geração dos scripts de carga.
