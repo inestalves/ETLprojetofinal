@@ -6,13 +6,14 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 
 SCHEMA_SQL = """
 CREATE TABLE IF NOT EXISTS dim_artists (
-    artist_id       INTEGER PRIMARY KEY,
-    artist_name     TEXT    NOT NULL UNIQUE,
-    mbi_id          TEXT,
-    playcount       REAL,
-    listeners       REAL,
-    tags_genres_era TEXT,
-    biography       TEXT
+    artist_id            INTEGER PRIMARY KEY,
+    artist_name          TEXT    NOT NULL UNIQUE,
+    mbi_id               TEXT,
+    playcount            REAL,
+    listeners            REAL,
+    tags_genres_era      TEXT,
+    biography            TEXT,
+    playlist_appearances INTEGER
 );
 
 CREATE TABLE IF NOT EXISTS dim_tracks (

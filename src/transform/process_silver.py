@@ -23,7 +23,19 @@ def main():
     os.makedirs('data/silver', exist_ok=True)
     
     logging.info("A ler os ficheiros da camada Raw...")
-    df_spotify = pd.read_csv('data/raw/spotify_sample.csv')
+    df_spotify_raw = pd.read_csv('data/raw/spotify_sample.csv')
+
+    # Limpar nomes ANTES de contar para garantir que o join funciona
+    df_spotify_raw['artist_name'] = df_spotify_raw['artist_name'].apply(clean_artist_name)
+
+    # Contar aparições em playlists (antes do dedup) — métrica de popularidade
+    playlist_counts = (
+        df_spotify_raw.groupby('artist_name')
+        .size()
+        .reset_index(name='playlist_appearances')
+    )
+
+    df_spotify = df_spotify_raw.copy()
     df_lastfm = pd.read_csv('data/raw/lastfm_raw.csv')
     df_mb = pd.read_csv('data/raw/musicbrainz_dataset.csv')
     
@@ -47,8 +59,8 @@ def main():
     df_wiki = df_wiki.drop_duplicates(subset=['artist_name'])
 
     logging.info("A realizar a integração dos dados (Joins)...")
-    # Como as colunas originais já estão limpas, fazemos o JOIN diretamente por elas
-    df_master = pd.merge(df_spotify, df_lastfm, on=['artist_name'], how='left')    
+    df_master = pd.merge(df_spotify, playlist_counts, on='artist_name', how='left')
+    df_master = pd.merge(df_master, df_lastfm, on=['artist_name'], how='left')    
     
     # Adicionamos um sufixo apenas para não dar conflito na coluna mbi_id (que vem do lastfm e do mb)
     df_master = pd.merge(df_master, df_mb, on=['artist_name', 'track_name'], how='left', suffixes=('', '_mb'))

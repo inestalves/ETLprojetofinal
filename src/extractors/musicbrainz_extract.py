@@ -45,10 +45,24 @@ if __name__ == "__main__":
     input_file = root / "data" / "raw" / "spotify_sample.csv"
     output_file = root / "data" / "raw" / "musicbrainz_dataset.csv"
 
-    df = pd.read_csv(input_file)
-    sample_data = df.head(10) # amostra para 10
+    SAMPLE_SIZE = 500  # Cada faixa demora ~1.2s → 500 faixas ≈ 10 minutos
 
-    print(f"A iniciar MusicBrainz para {len(sample_data)} faixas...")
+    df = pd.read_csv(input_file)
+
+    # Selecionar as faixas dos artistas mais populares por aparições em playlists
+    top_artists = (
+        df.groupby('artist_name')
+        .size()
+        .sort_values(ascending=False)
+        .head(SAMPLE_SIZE)
+        .index
+        .tolist()
+    )
+    sample_data = df[df['artist_name'].isin(top_artists)].drop_duplicates(
+        subset=['artist_name', 'track_name']
+    ).head(SAMPLE_SIZE)
+
+    print(f"A iniciar MusicBrainz para {len(sample_data)} faixas dos artistas mais populares...")
 
     results = []
     for _, row in sample_data.iterrows():

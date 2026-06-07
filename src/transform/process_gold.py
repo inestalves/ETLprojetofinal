@@ -5,8 +5,11 @@ import logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 def build_dim_artists(df: pd.DataFrame) -> pd.DataFrame:
+    cols = ['artist_name', 'mbi_id', 'playcount', 'listeners',
+            'tags_genres_era', 'biography', 'playlist_appearances']
+    available = [c for c in cols if c in df.columns]
     dim = (
-        df[['artist_name', 'mbi_id', 'playcount', 'listeners', 'tags_genres_era', 'biography']]
+        df[available]
         .drop_duplicates(subset=['artist_name'])
         .reset_index(drop=True)
     )

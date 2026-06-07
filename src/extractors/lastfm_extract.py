@@ -54,17 +54,28 @@ if __name__ == "__main__":
     input_file = root / "data" / "raw" / "spotify_sample.csv"
     output_file = root / "data" / "raw" / "lastfm_raw.csv"
 
+    SAMPLE_SIZE = 1000  # Aumentar para mais dados (cada artista demora ~0.2s)
+
     if not input_file.exists():
         print("Erro: O ficheiro spotify_sample.csv não existe!")
     else:
         df = pd.read_csv(input_file)
-        unique_artists = df['artist_name'].unique()[:10]  # amostra teste
 
-        print(f"A extrair dados do Last.fm para {len(unique_artists)} artistas...")
+        # Selecionar os artistas mais populares por aparições em playlists
+        top_artists = (
+            df.groupby('artist_name')
+            .size()
+            .sort_values(ascending=False)
+            .head(SAMPLE_SIZE)
+            .index
+            .tolist()
+        )
+
+        print(f"A extrair dados do Last.fm para {len(top_artists)} artistas mais populares...")
 
         results = []
-        for artist in unique_artists:
-            print(f"A consultar: {artist}")
+        for i, artist in enumerate(top_artists):
+            print(f"[{i+1}/{len(top_artists)}] A consultar: {artist}")
             info = get_lastfm_data(artist)
 
             if info:
@@ -79,4 +90,4 @@ if __name__ == "__main__":
             time.sleep(0.2)  # Rate limit
 
         pd.DataFrame(results).to_csv(output_file, index=False)
-        print(f"Extração Last.fm concluída: {output_file}")
+        print(f"Extração Last.fm concluída: {len(results)} artistas guardados em {output_file}")
