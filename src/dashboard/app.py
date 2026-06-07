@@ -17,7 +17,7 @@ from src.dashboard.queries import (
     get_genre_vs_success,
 )
 
-# ── Configuração ───────────────────────────────────────────────────────────────
+# Configuração
 st.set_page_config(
     page_title="Tendências Musicais Globais",
     page_icon="",
@@ -32,15 +32,10 @@ st.markdown(
     "**aparições em playlists** (Spotify, cobre 24 000+ artistas) "
     "e **ouvintes únicos** (Last.fm, cobre os 1 000 artistas mais populares)."
 )
-st.info(
-    "**Nota sobre os dados:** A dimensão geográfica ('por país') é limitada — "
-    "apenas 318 faixas têm país de lançamento identificado no MusicBrainz. "
-    "A análise foca-se nos fatores mensuráveis: género musical, popularidade "
-    "em streaming e presença em playlists."
-)
+
 st.divider()
 
-# ── Sidebar ────────────────────────────────────────────────────────────────────
+# Sidebar
 st.sidebar.header(" Filtros")
 
 countries = ["Todos"] + get_countries()
@@ -56,7 +51,7 @@ st.sidebar.caption(
     "todos os 24 000+ artistas."
 )
 
-# ── Secção 1 — Top artistas ────────────────────────────────────────────────────
+# Top artistas
 st.header("1. Artistas mais presentes nas playlists")
 st.caption("Quantas playlists do Spotify incluem cada artista — o indicador de sucesso mais abrangente do dataset.")
 st.markdown(
@@ -84,7 +79,7 @@ else:
 
 st.divider()
 
-# ── Secção 2 — Géneros e sucesso ──────────────────────────────────────────────
+# Géneros e sucesso
 st.header("2. Que géneros musicais dominam as playlists?")
 st.caption("Média de aparições em playlists e de ouvintes por género musical (mínimo 3 artistas por género).")
 st.markdown(
@@ -128,7 +123,7 @@ with col2:
 
 st.divider()
 
-# ── Secção 3 — Listeners vs Playlists ────────────────────────────────────────
+# Listeners vs Playlists
 st.header("3. Popularidade no streaming vs. presença em playlists")
 st.markdown(
     "Cada ponto é um artista. **Artistas no canto superior direito** são populares em ambas as dimensões — "
@@ -178,7 +173,7 @@ else:
 
 st.divider()
 
-# ── Secção 4 — Distribuição por país ─────────────────────────────────────────
+# Distribuição por país
 st.header("4. De onde vêm as faixas com mais dados?")
 st.caption(
     "Mapa de faixas com país de lançamento identificado no MusicBrainz. "
@@ -257,7 +252,7 @@ else:
     )
     st.plotly_chart(fig5, use_container_width=True)
 
-    # Ranking em baixo do mapa, só top 10 para não ficar demasiado longo
+    # Ranking top 10
     st.caption("Top 10 países por número de faixas identificadas")
     fig5b = px.bar(
         df_map.sort_values("total_faixas", ascending=False).head(10),
@@ -282,7 +277,7 @@ else:
 
 st.divider()
 
-# ── Secção 5 — Evolução temporal ──────────────────────────────────────────────
+# Evolução temporal
 st.header("5. Evolução dos lançamentos ao longo do tempo")
 st.caption("Anos com mais lançamentos identificados no MusicBrainz.")
 st.markdown(
@@ -309,7 +304,7 @@ else:
 
 st.divider()
 
-# ── Secção 6 — Top artistas por ouvintes ──────────────────────────────────────
+# Top artistas por ouvintes
 st.header("6. Top artistas por ouvintes únicos (Last.fm)")
 st.caption("Os 1000 artistas mais populares em playlists foram enriquecidos com dados do Last.fm.")
 st.markdown(
@@ -340,8 +335,8 @@ else:
 
 st.divider()
 
-# ── Conclusões ─────────────────────────────────────────────────────────────────
-st.header("💡 Conclusões — Resposta à Pergunta Analítica")
+# Conclusões
+st.header("Conclusões ")
 st.markdown("""
 > *"Que fatores influenciam o sucesso musical?"*
 
